@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(
         info = @Info(title = "Sw2 API", version = "v1"),
         servers = {
-                @Server(url = "https://gyoseung.me", description = "Production Server"),
+                @Server(url = "https://sw2.gyoseung.me", description = "Production Server"),
                 @Server(url = "http://127.0.0.1:9090", description = "Local Server")
         }
 )

@@ -22,9 +22,6 @@ public class SecurityConfig {
         this.jwtUtil = jwtUtil;
     }
 
-    // 이제 AuthenticationManager는 필요 없으므로 제거
-
-    // JWTFilter 생성
     @Bean
     public JWTFilter jwtFilter() {
         return new JWTFilter(jwtUtil);
@@ -33,11 +30,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // CORS 설정
                 .cors(corsCustomizer -> corsCustomizer
                         .configurationSource(request -> {
                             CorsConfiguration configuration = new CorsConfiguration();
-                            configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
+                            configuration.setAllowedOrigins(Arrays.asList(
+                                    "http://127.0.0.1:9090",
+                                    "http://localhost:9090",
+                                    "https://sw2.gyoseung.me"
+                            ));
                             configuration.setAllowedMethods(Collections.singletonList("*"));
                             configuration.setAllowCredentials(true);
                             configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -46,15 +46,14 @@ public class SecurityConfig {
                             return configuration;
                         })
                 )
-                .csrf(csrf -> csrf.disable()) // CSRF 비활성화
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/test/**").authenticated() // 로그인 필요 경로
-                        .anyRequest().permitAll() // 나머지 요청은 허용
+                        .requestMatchers("/test/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // 필터 체인에 JWTFilter 추가 (AuthenticationManager 제거)
                 .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
