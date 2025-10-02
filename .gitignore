@@ -7,4 +7,4 @@
 /dataSources/
 /dataSources.local.xml
 
-/resources/env.properties
+/src/main/resources/env.properties
