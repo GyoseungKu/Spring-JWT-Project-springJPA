@@ -127,17 +127,11 @@ public class JoinController {
 
     // 이메일 인증 코드 확인
     @PostMapping("/authEmail")
-    public ResponseEntity<?> authEmail(@RequestParam String userEmail, @RequestParam int authCode , @RequestParam String type) {
+    public ResponseEntity<?> authEmail(@RequestParam String userEmail, @RequestParam int authCode) {
         try {
             String result = emailAuthService.validateAuthCode(userEmail, authCode);
             if ("Y".equals(result)) {
-                if(type.equals("find")){
-                    String id = cmmnUserRepository.findUserIdByEmail(userEmail);
-                    return ResponseEntity.ok(Map.of("id",id));
-                }
-                else{
-                    return ResponseEntity.ok(Map.of("message", "이메일 인증 성공"));
-                }
+                return ResponseEntity.ok(Map.of("message", "이메일 인증 성공"));
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "이메일 인증 실패"));
             }
@@ -146,6 +140,7 @@ public class JoinController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "이메일 인증 처리에 실패했습니다."));
         }
     }
+
 
     // 이메일 인증 코드 확인
     @PostMapping("/chgUserPassword")
