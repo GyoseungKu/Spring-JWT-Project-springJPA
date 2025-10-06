@@ -4,6 +4,7 @@ import com.swProject.sw2_project.DTO.CmmnJoinDTO;
 import com.swProject.sw2_project.Repository.CmmnUserRepository;
 import com.swProject.sw2_project.Service.EmailAuthService;
 import com.swProject.sw2_project.Service.JoinService;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -94,6 +95,7 @@ public class JoinController {
 
     // 인증 이메일 전송
     @PostMapping("/sendAuthEmail")
+
     public ResponseEntity<?> sendAuthEmail(@RequestParam String userEmail,@RequestParam String type) {
         try {
             String id = null;
@@ -178,4 +180,29 @@ public class JoinController {
                     .body(Map.of("message", "이메일 인증 처리에 실패했습니다."));
         }
     }
+
+    // 아이디 찾기
+    @PostMapping("/findUserId")
+    public ResponseEntity<?> findUserId(@RequestParam String userEmail, @RequestParam int authCode) {
+        try {
+            String result = emailAuthService.validateAuthCode(userEmail, authCode);
+            if ("Y".equals(result)) {
+                String userId = cmmnUserRepository.findUserIdByEmail(userEmail);
+                if (userId != null && !userId.isEmpty()) {
+                    return ResponseEntity.ok(Map.of("userId", userId, "userEmail", userEmail));
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(Map.of("message", "해당 이메일로 가입된 아이디가 없습니다."));
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "이메일 인증 실패"));
+            }
+        } catch (Exception e) {
+            log.error("아이디 찾기 처리 중 오류", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "아이디 찾기 처리에 실패했습니다."));
+        }
+    }
+
 }
