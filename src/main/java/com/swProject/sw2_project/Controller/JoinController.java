@@ -69,9 +69,9 @@ public class JoinController {
             }else{
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "해당 이메일로 가입한 계정이 존재하지 않습니다. "));
             }
-            } catch(Exception e){
-                log.error("이메일 전송 실패", e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "이메일 전송에 실패했습니다."));
+        } catch(Exception e){
+            log.error("이메일 전송 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "이메일 전송에 실패했습니다."));
         }
     }
 

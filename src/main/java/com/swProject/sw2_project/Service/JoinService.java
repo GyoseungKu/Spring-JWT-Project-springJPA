@@ -8,9 +8,8 @@ import com.swProject.sw2_project.Repository.CmmnUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,80 +24,65 @@ public class JoinService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    public String chkUserId(String userId) {
+        boolean exists = cmmnUserRepository.existsByUserId(userId);
+        return exists ? "fail" : "success";
+    }
+
     public Map<String, Object> registerUserLogin(CmmnJoinDTO dto) {
         Map<String, Object> rtnMap = new HashMap<>();
-
         try {
             CmmnUser cmmnUser = new CmmnUser();
             cmmnUser.setUserId(dto.getUserId());
-            cmmnUser.setUserNm(dto.getUserNm());
-            cmmnUser.setUserAge(String.valueOf(dto.getUserAge()));
+            cmmnUser.setUserNm(dto.getUserId());
             cmmnUser.setUserEmail(dto.getUserEmail());
-            cmmnUser.setTelNo(dto.getTelNo());
-            cmmnUser.setRegDt(String.valueOf(dto.getRegDt()));
-            cmmnUser.setChgDt(String.valueOf(dto.getChgDt()));
+            cmmnUser.setRegDt(LocalDate.now().toString());
+            cmmnUser.setChgDt(LocalDate.now().toString());
 
-            // 2. CmmnUserLogin 엔티티 생성
             CmmnUserLogin cmmnUserLogin = new CmmnUserLogin();
             cmmnUserLogin.setUserId(dto.getUserId());
             cmmnUserLogin.setUserPassword(passwordEncoder.encode(dto.getUserPassword()));
-            if (dto.getBeforeUserPassword() != null) {
-                cmmnUserLogin.setBeforeUserPassword(passwordEncoder.encode(dto.getBeforeUserPassword()));
-            }
-            cmmnUserLogin.setPasswordExpDt(dto.getPasswordExpDt());
-            cmmnUserLogin.setFirPasswordYn(dto.getFirPasswordYn());
-            cmmnUserLogin.setLoginType(dto.getLoginType());
-            cmmnUserLogin.setUseYn(dto.getUseYn());
-            cmmnUserLogin.setDelYn(dto.getDelYn());
+            cmmnUserLogin.setFirPasswordYn("Y");
+            cmmnUserLogin.setUseYn("Y");
+            cmmnUserLogin.setDelYn("N");
+            cmmnUserLogin.setRegDt(LocalDate.now());
+            cmmnUserLogin.setChgDt(LocalDate.now());
 
-
-            // CmmnUserLogin의 userId를 CmmnUser에 설정
             cmmnUser.setCmmnUserLogin(cmmnUserLogin);
 
-            // 3. CmmnUser 엔티티 저장
             cmmnUserRepository.save(cmmnUser);
 
             rtnMap.put("status", "success");
         } catch (Exception e) {
             rtnMap.put("status", "fail");
             rtnMap.put("error", e.getMessage());
-            throw e;  // 예외가 발생하면 롤백 처리
+            throw e;
         }
-
         return rtnMap;
     }
-    public String chkUserId(String userId) {
+
+    // 비밀번호 변경
+    public String chgUserPassword(String userId, String newPassword) {
         try {
-            String chkUserId = String.valueOf(cmmnUserRepository.findByChkUserId(userId));
-            if ("null".equals(chkUserId)) {
-                return "success";
-            }
-        } catch (Exception e) {
-            throw e;
-        }
-            return "fail";
-    }
-    public String chgUserPassword(String userId,String userPassword) {
-        try {
-            String chkUserId = String.valueOf(cmmnUserRepository.findByChkUserId(userId));
-            if (chkUserId != null && !"".equals(chkUserId)) {
-                //이전 비밀번호 before 비밀번호로 넘기고 현재 비밀번호 update
-                String password = passwordEncoder.encode(userPassword);
-                String beforeUserPassword = cmmnUserRepository.findUserPassword(userId);
-                if (beforeUserPassword.equals(userPassword)) {
-                    return "duplicate";
-                }
-                int chgUserPassword = cmmnUserRepository.updateUserPassword(password,beforeUserPassword, userId);
-                if (chgUserPassword > 0) {
-                    return "ok";
-                } else {
-                    return "fail";
-                }
-            } else {
+            CmmnUserLogin userLogin = cmmnUserLoginRepository.findByUserId(userId);
+            if (userLogin == null) {
                 return "fail";
             }
+            String currentPassword = userLogin.getUserPassword();
+            if (passwordEncoder.matches(newPassword, currentPassword)) {
+                return "duplicate";
+            }
+            String beforePassword = currentPassword;
+            String encodedNewPassword = passwordEncoder.encode(newPassword);
+
+            userLogin.setBeforeUserPassword(beforePassword);
+            userLogin.setUserPassword(encodedNewPassword);
+            userLogin.setChgDt(LocalDate.now());
+
+            cmmnUserLoginRepository.save(userLogin);
+            return "ok";
         } catch (Exception e) {
-            throw e;
+            return "fail";
         }
     }
 }

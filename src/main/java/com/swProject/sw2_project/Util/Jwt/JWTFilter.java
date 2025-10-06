@@ -6,7 +6,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -26,30 +25,24 @@ public class JWTFilter implements Filter {
 
         String token = null;
 
-        // 1. 쿠키에서 accessToken 찾기
-        Cookie[] cookies = httpRequest.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("accessToken".equals(cookie.getName())) { // 쿠키 이름 확인
-                    token = cookie.getValue();
-                    break;
-                }
-            }
+        // Authorization 헤더에서 Bearer 토큰 추출
+        String authHeader = httpRequest.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
         }
 
-        // 2. 토큰이 있으면 검증 후 SecurityContext에 바로 넣기
         if (token != null && jwtUtil.validateToken(token, jwtUtil.extractUserId(token))) {
             String userId = jwtUtil.extractUserId(token);
 
-            // 인증 완료된 Authentication 객체 생성 (권한은 null)
             JwtAuthenticationToken authentication =
                     new JwtAuthenticationToken(userId, token, null);
             authentication.setAuthenticated(true);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+        } else {
+            SecurityContextHolder.clearContext();
         }
 
-        // 3. 필터 체인 계속 진행
         chain.doFilter(request, response);
     }
 }

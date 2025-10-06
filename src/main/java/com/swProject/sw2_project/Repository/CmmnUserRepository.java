@@ -1,6 +1,5 @@
 package com.swProject.sw2_project.Repository;
 
-
 import com.swProject.sw2_project.Entity.CmmnUser;
 import com.swProject.sw2_project.Entity.CmmnUserLogin;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,4 +28,6 @@ public interface CmmnUserRepository extends JpaRepository<CmmnUser, String> {
                            @Param("beforeUserPassword") String beforeUserPassword,
                            @Param("userId") String userId);
 
+    // 아이디 중복 확인용
+    boolean existsByUserId(String userId);
 }

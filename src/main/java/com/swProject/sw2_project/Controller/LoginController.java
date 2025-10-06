@@ -1,5 +1,6 @@
 package com.swProject.sw2_project.Controller;
 
+import com.swProject.sw2_project.DTO.LoginRequestDTO;
 import com.swProject.sw2_project.Service.LoginService;
 import com.swProject.sw2_project.Util.Jwt.JwtUtil;
 import jakarta.servlet.http.Cookie;
@@ -23,10 +24,9 @@ public class LoginController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam Map<String, Object> paramMap,
-                                   HttpServletResponse response) {
-        String userId = (String) paramMap.get("userId");
-        String password = (String) paramMap.get("userPassword");
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest, HttpServletResponse response) {
+        String userId = loginRequest.getUserId();
+        String password = loginRequest.getUserPassword();
 
         String accessToken = loginService.authenticateUser(userId, password);
 
