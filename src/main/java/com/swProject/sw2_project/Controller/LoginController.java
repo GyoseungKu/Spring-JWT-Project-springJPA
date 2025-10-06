@@ -28,25 +28,34 @@ public class LoginController {
         String userId = loginRequest.getUserId();
         String password = loginRequest.getUserPassword();
 
-        String accessToken = loginService.authenticateUser(userId, password);
+        try {
+            String accessToken = loginService.authenticateUser(userId, password);
 
-        if (!"c".equals(accessToken)) {
-            // 로그인 성공
-            String refreshToken = jwtUtil.generateRefreshToken(userId);
-            loginService.saveRefreshToken(userId, refreshToken);
+            if (!"c".equals(accessToken)) {
+                String refreshToken = jwtUtil.generateRefreshToken(userId);
+                loginService.saveRefreshToken(userId, refreshToken);
 
-            addTokenToCookie(response, "accessToken", accessToken, 15 * 60);         // 15분
-            addTokenToCookie(response, "refreshToken", refreshToken, 7 * 24 * 60 * 60); // 7일
+                addTokenToCookie(response, "accessToken", accessToken, 15 * 60);
+                addTokenToCookie(response, "refreshToken", refreshToken, 7 * 24 * 60 * 60);
 
-            return ResponseEntity.ok(Map.of(
-                    "message", "로그인 성공",
-                    "accessToken", accessToken
-                    // 필요한 경우 refreshToken은 제외하거나 분리 처리
-            ));
-        } else {
-            // 로그인 실패
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                    "message", "아이디 또는 비밀번호가 일치하지 않습니다."
+                return ResponseEntity.ok(Map.of(
+                        "message", "로그인 성공",
+                        "accessToken", accessToken
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "message", "아이디 또는 비밀번호가 일치하지 않습니다."
+                ));
+            }
+        } catch (RuntimeException e) {
+            if ("탈퇴한 사용자입니다".equals(e.getMessage())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                        "message", "탈퇴한 사용자입니다."
+                ));
+            }
+            // 기타 예외 처리
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "message", "서버 오류가 발생했습니다."
             ));
         }
     }

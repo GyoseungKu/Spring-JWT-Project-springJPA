@@ -33,27 +33,28 @@ public class LoginService {
 
     // 로그인 인증 및 JWT 토큰 발급
     public String authenticateUser(String userId, String password) {
-        // 사용자 로그인 정보 조회
         CmmnUserLogin userLogin = cmmnUserLoginRepository.findByUserId(userId);
-        if (userLogin != null && passwordEncoder.matches(password, userLogin.getUserPassword())) {
-            // 비밀번호 일치시 JWT 토큰 생성
-            String accessToken = jwtUtil.generateAccessToken(userId);
-            String refreshToken = jwtUtil.generateRefreshToken(userId);
 
-            saveRefreshToken(userId, refreshToken);
-            Date tokenExpiration = jwtUtil.extractClaims(accessToken).getExpiration();
-            CmmnUserLoginTokenDTO loginTokenDTO = new CmmnUserLoginTokenDTO(userId, refreshToken, tokenExpiration);
+        if (userLogin != null) {
+            if (!"Y".equals(userLogin.getUseYn()) || !"N".equals(userLogin.getDelYn())) {
+                throw new RuntimeException("탈퇴한 사용자입니다");
+            }
+            if (passwordEncoder.matches(password, userLogin.getUserPassword())) {
+                String accessToken = jwtUtil.generateAccessToken(userId);
+                String refreshToken = jwtUtil.generateRefreshToken(userId);
 
-            saveUserLoginToken(loginTokenDTO);
-            return accessToken;
+                saveRefreshToken(userId, refreshToken);
+                Date tokenExpiration = jwtUtil.extractClaims(accessToken).getExpiration();
+                CmmnUserLoginTokenDTO loginTokenDTO = new CmmnUserLoginTokenDTO(userId, refreshToken, tokenExpiration);
+
+                saveUserLoginToken(loginTokenDTO);
+                return accessToken;
+            }
         }
-
         // 인증 실패 시
         return "c";
     }
 
-
-    // Refresh Token 저장
     public void saveRefreshToken(String userId, String refreshToken) {
         Date exp = jwtUtil.extractClaims(refreshToken).getExpiration();
         CmmnUserLoginTokenDTO loginTokenDTO = new CmmnUserLoginTokenDTO(userId, refreshToken, exp);
@@ -66,14 +67,12 @@ public class LoginService {
         CmmnUserLogin user = cmmnUserLoginRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
 
-        // 기존 토큰이 존재하는지 확인 (여기서는 복합 조건을 사용)
         Optional<CmmnUserLoginToken> existingToken = cmmnUserLoginTokenRepository
                 .findByChkUserId(dto.getUserId());
 
         CmmnUserLoginToken entity;
 
         if (existingToken.isPresent()) {
-            // 기존 토큰 존재 시 만료일자 갱신
             entity = existingToken.get();
             entity.setTokenExpDt(dto.getTokenExpiration());
         } else {
@@ -81,9 +80,7 @@ public class LoginService {
             entity = new CmmnUserLoginToken(tokenId, dto.getTokenExpiration());
         }
 
-        // 연관관계 설정
-        entity.setCmmnUserLogin(user);  // 사용자 정보 연결
+        entity.setCmmnUserLogin(user);
         cmmnUserLoginTokenRepository.save(entity);
     }
 }
-
