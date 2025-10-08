@@ -49,7 +49,9 @@ public class SecurityConfig {
                             configuration.setAllowedOrigins(Arrays.asList(
                                     "http://127.0.0.1:9090",
                                     "http://localhost:9090",
-                                    "https://sw2.gyoseung.me"
+                                    "https://sw2.gyoseung.me",
+                                    "http://localhost:3000",
+                                    "http://127.0.0.1:3000"
                             ));
                             configuration.setAllowedMethods(Collections.singletonList("*"));
                             configuration.setAllowCredentials(true);
