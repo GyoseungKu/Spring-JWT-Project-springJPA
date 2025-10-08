@@ -10,4 +10,5 @@ public class UserInfoDTO {
     private String regDt;
     private String chgDt;
     private String passwordChgDt;
+    private Long profileImageId; // 추가
 }

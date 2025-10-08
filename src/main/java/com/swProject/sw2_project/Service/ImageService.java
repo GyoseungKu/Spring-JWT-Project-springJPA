@@ -6,7 +6,6 @@ import com.swProject.sw2_project.Repository.ImageRepository;
 import com.swProject.sw2_project.Repository.CmmnUserRepository;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,13 +28,15 @@ public class ImageService {
     @Value("${ftp.base-dir}")
     private String baseDir;
 
-    @Autowired
-    private ImageRepository imageRepository;
+    private final ImageRepository imageRepository;
+    private final CmmnUserRepository userRepository;
 
-    @Autowired
-    private CmmnUserRepository userRepository;
+    public ImageService(ImageRepository imageRepository, CmmnUserRepository userRepository) {
+        this.imageRepository = imageRepository;
+        this.userRepository = userRepository;
+    }
 
-    public Image uploadProfileImage(MultipartFile file, CmmnUser user) throws IOException {
+    public Image uploadProfileImage(MultipartFile file, String userId) throws IOException {
         FTPClient ftp = new FTPClient();
         try (InputStream is = file.getInputStream()) {
             ftp.connect(host, port);
@@ -60,8 +61,8 @@ public class ImageService {
             ftp.logout();
             if (!done) throw new IOException("FTP 업로드 실패");
 
-            // 영속 사용자 객체로 조회
-            CmmnUser persistentUser = userRepository.findById(user.getUserId())
+            // 사용자 조회
+            CmmnUser persistentUser = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
             Image image = new Image();
@@ -73,6 +74,7 @@ public class ImageService {
 
             imageRepository.save(image);
 
+            // 프로필 이미지 id 저장
             persistentUser.setProfileImage(image);
             userRepository.save(persistentUser);
 

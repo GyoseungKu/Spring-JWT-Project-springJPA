@@ -62,11 +62,17 @@ public class UserController {
         String userId = principal.getName();
         var userOpt = userService.getUserInfo(userId);
         if (userOpt.isPresent()) {
-            return ResponseEntity.ok(userOpt.get());
+            var dto = userOpt.get();
+            var userEntityOpt = userService.findById(userId);
+            if (userEntityOpt.isPresent() && userEntityOpt.get().getProfileImage() != null) {
+                dto.setProfileImageId(userEntityOpt.get().getProfileImage().getImageId());
+            }
+            return ResponseEntity.ok(dto);
         } else {
             return ResponseEntity.status(404).body(Map.of("message", "사용자를 찾을 수 없습니다."));
         }
     }
+
 
     // 비밀번호 확인
     @SecurityRequirement(name = "bearerAuth")

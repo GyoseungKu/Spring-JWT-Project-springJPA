@@ -1,6 +1,7 @@
 package com.swProject.sw2_project.Service;
 
 import com.swProject.sw2_project.DTO.UserInfoDTO;
+import com.swProject.sw2_project.Entity.CmmnUser;
 import com.swProject.sw2_project.Repository.CmmnUserLoginRepository;
 import com.swProject.sw2_project.Repository.CmmnUserRepository;
 import lombok.RequiredArgsConstructor;
@@ -60,6 +61,10 @@ public class UserService {
             if (user.getCmmnUserLogin() != null && user.getCmmnUserLogin().getChgDt() != null) {
                 dto.setPasswordChgDt(user.getCmmnUserLogin().getChgDt().toString());
             }
+            // 프로필 이미지 아이디 세팅
+            if (user.getProfileImage() != null) {
+                dto.setProfileImageId(user.getProfileImage().getImageId());
+            }
             return Optional.of(dto);
         }
         return Optional.empty();
@@ -73,5 +78,10 @@ public class UserService {
             return passwordEncoder.matches(rawPassword, userLogin.getUserPassword());
         }
         return false;
+    }
+
+    // 사용자 엔티티 직접 조회
+    public Optional<CmmnUser> findById(String userId) {
+        return cmmnUserRepository.findById(userId);
     }
 }
