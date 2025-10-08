@@ -23,6 +23,10 @@ public class CmmnUser {
     @JoinColumn(name = "userId")
     private CmmnUserLogin cmmnUserLogin;
 
+    @OneToOne
+    @JoinColumn(name = "profile_image_id")
+    private Image profileImage;
+
     @Version
     private Long version;
 }
