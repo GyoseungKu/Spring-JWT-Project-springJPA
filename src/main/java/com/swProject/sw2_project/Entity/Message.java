@@ -5,11 +5,11 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "message")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "message")
 public class Message {
 
     @Id
@@ -30,6 +30,7 @@ public class Message {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String message;
 
+    @Column
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public enum SenderType {

@@ -6,11 +6,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@Table(name = "conversation")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "conversation")
 public class Conversation {
 
     @Id
@@ -19,13 +19,16 @@ public class Conversation {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private CmmnUser user;
+    private CmmnUser user; // 기존 유저 엔티티 참조
 
     @ManyToOne
     @JoinColumn(name = "scenario_id", nullable = false)
     private Scenario scenario;
 
+    @Column
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL)

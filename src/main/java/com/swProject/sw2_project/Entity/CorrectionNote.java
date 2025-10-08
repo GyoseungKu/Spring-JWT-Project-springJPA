@@ -5,11 +5,11 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "correction_note")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "correction_note")
 public class CorrectionNote {
 
     @Id
@@ -33,5 +33,6 @@ public class CorrectionNote {
     @Column(columnDefinition = "TEXT")
     private String explanation;
 
+    @Column
     private LocalDateTime createdAt = LocalDateTime.now();
 }

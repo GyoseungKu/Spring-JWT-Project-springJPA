@@ -6,30 +6,31 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@Table(name = "scenario")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "scenario")
 public class Scenario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long scenarioId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String partnerRole; // 상사, 동료 등
 
-    @Column(nullable = false)
-    private String situation; // 대화 상황
+    @Column(nullable = false, length = 255)
+    private String situation; // 대화 상황 요약
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String tutorPrompt; // AI 튜터 프롬프트
+    private String tutorPrompt; // AI 튜터용 프롬프트
 
     @Column(columnDefinition = "TEXT")
-    private String notePrompt; // 오답노트 프롬프트
+    private String notePrompt; // 오답노트용 프롬프트
 
-    private Integer difficulty; // 난이도 1~5
+    @Column
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "scenario", cascade = CascadeType.ALL)
     private List<Conversation> conversations;
