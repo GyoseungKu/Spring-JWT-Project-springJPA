@@ -18,6 +18,10 @@ public class ScenarioService {
         List<Scenario> scenarios = scenarioRepository.findAll();
         if (scenarios.isEmpty()) throw new IllegalStateException("시나리오가 없습니다.");
         Scenario scenario = scenarios.get(new Random().nextInt(scenarios.size()));
-        return new ScenarioSimpleDTO(scenario.getScenarioId(), scenario.getSituation());
+        return new ScenarioSimpleDTO(
+                scenario.getScenarioId(),
+                scenario.getSituation(),
+                scenario.getPartnerRole()
+        );
     }
 }

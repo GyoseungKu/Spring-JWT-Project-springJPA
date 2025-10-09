@@ -8,4 +8,5 @@ import lombok.Data;
 public class ScenarioSimpleDTO {
     private Long scenarioId;
     private String situation;
+    private String partnerRole;
 }
