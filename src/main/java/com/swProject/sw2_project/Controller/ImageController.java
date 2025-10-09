@@ -3,6 +3,7 @@ package com.swProject.sw2_project.Controller;
 import com.swProject.sw2_project.Service.ImageService;
 import com.swProject.sw2_project.Entity.Image;
 import com.swProject.sw2_project.Repository.ImageRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +22,7 @@ public class ImageController {
         this.imageRepository = imageRepository;
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/upload")
     public ResponseEntity<?> uploadProfileImage(
             @RequestParam("file") MultipartFile file,

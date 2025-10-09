@@ -1,5 +1,6 @@
 package com.swProject.sw2_project.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ public class Message {
 
     @ManyToOne
     @JoinColumn(name = "conversation_id", nullable = false)
+    @JsonIgnore
     private Conversation conversation;
 
     @Column(nullable = false)
@@ -31,7 +33,14 @@ public class Message {
     private String message;
 
     @Column
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    public void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 
     public enum SenderType {
         USER,
