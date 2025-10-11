@@ -184,4 +184,32 @@ public class GptService {
 
         return new GptResponseDTO(answer.trim());
     }
+
+    public String askCorrection(String prompt) {
+        ChatGptRequest gptRequest = new ChatGptRequest(
+                "gpt-4o",
+                List.of(
+                        new ChatGptRequest.Message("system", "아래 문장을 대한민국 직장생활에 적합한 존댓말, 예의 바른 표현으로 교정해줘. 교정된 문장과 교정 이유를 각각 알려줘."),
+                        new ChatGptRequest.Message("user", prompt)
+                )
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(openAiApiKey);
+
+        HttpEntity<ChatGptRequest> entity = new HttpEntity<>(gptRequest, headers);
+        RestTemplate restTemplate = new RestTemplate();
+
+        ResponseEntity<ChatGptResponse> response =
+                restTemplate.postForEntity(API_URL, entity, ChatGptResponse.class);
+
+        String answer = response.getBody()
+                .getChoices()
+                .get(0)
+                .getMessage()
+                .getContent();
+
+        return answer.trim();
+    }
 }
