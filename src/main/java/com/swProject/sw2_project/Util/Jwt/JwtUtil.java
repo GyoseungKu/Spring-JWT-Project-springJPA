@@ -24,13 +24,12 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);  // HS256에 맞게 키 생성
     }
 
-
     // Access Token 생성
     public String generateAccessToken(String userId) {
         return Jwts.builder()
                 .setSubject(userId)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000)) // 15분
+                .setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 24시간
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)  // SecretKey 사용
                 .compact();
     }
