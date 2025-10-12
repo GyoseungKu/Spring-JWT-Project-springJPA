@@ -73,7 +73,6 @@ public class UserController {
         }
     }
 
-
     // 비밀번호 확인
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/password")
@@ -92,4 +91,22 @@ public class UserController {
         }
     }
 
+    // 비밀번호 변경 (마이페이지)
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/password/change")
+    public ResponseEntity<?> changePassword(
+            java.security.Principal principal,
+            @RequestBody Map<String, String> request) {
+        if (principal == null || principal.getName() == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "인증 정보가 없습니다."));
+        }
+        String userId = principal.getName();
+        String newPassword = request.get("newPassword");
+        boolean result = userService.changePassword(userId, newPassword);
+        if (result) {
+            return ResponseEntity.ok(Map.of("message", "비밀번호 변경 성공"));
+        } else {
+            return ResponseEntity.status(400).body(Map.of("message", "비밀번호 변경 실패"));
+        }
+    }
 }

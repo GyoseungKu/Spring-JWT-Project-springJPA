@@ -5,9 +5,11 @@ import com.swProject.sw2_project.Repository.CmmnUserRepository;
 import com.swProject.sw2_project.Service.EmailAuthService;
 import com.swProject.sw2_project.Service.JoinService;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
@@ -54,30 +56,63 @@ public class JoinController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "사용 불가능한 아이디입니다."));
         }
     }
-    // 인증 이메일 전송
+
+    // 비밀번호 변경 (로그인 전) 인증 이메일 전송
     @PostMapping("/sendChangeEmail")
-    public ResponseEntity<?> sendChangeEmail(@RequestParam String userEmail,@RequestParam String userId) {
-        String auth = null;
+    public ResponseEntity<?> sendChangeEmail(@RequestParam String userEmail, @RequestParam String userId) {
         try {
             String type = "change";
-            if (userId != null && !userId.equals("")) {
-                auth = emailAuthService.sendEmail(userEmail, type);
-                if (auth.equals("y")) {
+            if (userId != null && !userId.isEmpty()) {
+                String result = emailAuthService.sendEmail(userEmail, type);
+                if ("y".equals(result)) {
+                    int authCode = emailAuthService.getAuthCode(userEmail);
                     return ResponseEntity.ok(Map.of("message", "이메일을 성공적으로 보냈습니다."));
                 } else {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "해당 이메일로 가입한 계정이 존재하지 않습니다. "));
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(Map.of("message", "해당 이메일로 가입한 계정이 존재하지 않습니다."));
                 }
-            }else{
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "해당 이메일로 가입한 계정이 존재하지 않습니다. "));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("message", "해당 이메일로 가입한 계정이 존재하지 않습니다."));
             }
-        } catch(Exception e){
+        } catch (Exception e) {
             log.error("이메일 전송 실패", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "이메일 전송에 실패했습니다."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "이메일 전송에 실패했습니다."));
+        }
+    }
+
+
+    // 이메일 변경
+    @PostMapping("/changeEmail")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<?> changeEmail(@RequestParam String newEmail,
+                                         @RequestParam int authCode) {
+        try {
+            // 인증된 사용자 정보 가져오기
+            String userId = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                    .getAuthentication().getName();
+            String oldEmail = cmmnUserRepository.findByUserId(userId).getUserEmail();
+
+            String result = emailAuthService.validateAuthCode(newEmail, authCode);
+            if ("Y".equals(result)) {
+                String status = joinService.changeUserEmail(userId, oldEmail, newEmail);
+                if ("success".equals(status)) {
+                    return ResponseEntity.ok(Map.of("message", "이메일 변경 성공"));
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "이메일 변경 실패"));
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "이메일 인증 실패"));
+            }
+        } catch (Exception e) {
+            log.error("이메일 변경 처리 중 오류", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "이메일 변경 처리에 실패했습니다."));
         }
     }
 
     // 비밀번호 찾기 이메일 인증 코드 확인
-    @PostMapping("/authPasswordEmail")
+    @PostMapping("/authChangeEmail")
     public ResponseEntity<?> authPasswordEmail(@RequestParam String userId,@RequestParam String userEmail, @RequestParam int authCode) {
         try {
             String result = emailAuthService.validateAuthCode(userEmail, authCode);
@@ -93,9 +128,8 @@ public class JoinController {
         }
     }
 
-    // 인증 이메일 전송
+    // 가입, 아이디 찾기 인증 이메일 전송
     @PostMapping("/sendAuthEmail")
-
     public ResponseEntity<?> sendAuthEmail(@RequestParam String userEmail,@RequestParam String type) {
         try {
             String id = null;
@@ -125,7 +159,7 @@ public class JoinController {
         }
     }
 
-    // 이메일 인증 코드 확인
+    // 가입, 아이디 찾기 이메일 인증 코드 확인
     @PostMapping("/authEmail")
     public ResponseEntity<?> authEmail(@RequestParam String userEmail, @RequestParam int authCode) {
         try {
@@ -141,8 +175,7 @@ public class JoinController {
         }
     }
 
-
-    // 이메일 인증 코드 확인
+    // 비번 변경 이메일 인증 코드 확인
     @PostMapping("/chgUserPassword")
     public ResponseEntity<?> chgUserPassword(@RequestParam String userEmail,
                                              @RequestParam int authCode,
@@ -199,5 +232,4 @@ public class JoinController {
                     .body(Map.of("message", "아이디 찾기 처리에 실패했습니다."));
         }
     }
-
 }

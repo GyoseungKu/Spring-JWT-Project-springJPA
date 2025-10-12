@@ -36,7 +36,7 @@ public class EmailAuthService {
         // HTML 이메일 본문
         String htmlMsg = "<html><body>"
                 + "<h2>안녕하세요,</h2>"
-                + "<p>프로젝트 회원가입을 위한 인증코드입니다.</p>"
+                + "<p>잡담 인증코드입니다.</p>"
                 + "<div style='border:1px solid #000; padding:10px; text-align:center;'>"
                 + "<strong style='font-size:1.5em;'>"
                 + authNumber
@@ -46,7 +46,7 @@ public class EmailAuthService {
 
         String findIdMsg = "<html><body>"
                 + "<h2>안녕하세요,</h2>"
-                + "<p>프로젝트 아이디 찾기를 위한 인증코드입니다.</p>"
+                + "<p>잡담 아이디 찾기를 위한 인증코드입니다.</p>"
                 + "<div style='border:1px solid #000; padding:10px; text-align:center;'>"
                 + "<strong style='font-size:1.5em;'>"
                 + authNumber
@@ -56,7 +56,7 @@ public class EmailAuthService {
         
         String changePassword = "<html><body>"
                 + "<h2>안녕하세요,</h2>"
-                + "<p>프로젝트 비밀번호 변경을 위한 인증코드입니다.</p>"
+                + "<p>잡담 이메일/비밀번호 변경을 위한 인증코드입니다.</p>"
                 + "<div style='border:1px solid #000; padding:10px; text-align:center;'>"
                 + "<strong style='font-size:1.5em;'>"
                 + authNumber
@@ -70,8 +70,7 @@ public class EmailAuthService {
             MimeMessage message = emailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-            helper.setSubject("프로젝트 회원가입 인증 코드");
-            helper.setFrom("parkwooga@gmail.com"); // 발신자 이메일
+            helper.setSubject("잡담 인증 코드");
             helper.setTo(userEmail); // 받는 이메일 주소
 
             if(type.equals("find")){
@@ -133,5 +132,13 @@ public class EmailAuthService {
         public long getTimestamp() {
             return timestamp;
         }
+    }
+
+    public int getAuthCode(String userEmail) {
+        AuthInfo authInfo = authMap.get(userEmail);
+        if (authInfo != null) {
+            return authInfo.getAuthCode();
+        }
+        return -1;
     }
 }

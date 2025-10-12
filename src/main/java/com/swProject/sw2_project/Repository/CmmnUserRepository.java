@@ -30,4 +30,5 @@ public interface CmmnUserRepository extends JpaRepository<CmmnUser, String> {
 
     // 아이디 중복 확인용
     boolean existsByUserId(String userId);
+    CmmnUser findByUserId(String userId);
 }

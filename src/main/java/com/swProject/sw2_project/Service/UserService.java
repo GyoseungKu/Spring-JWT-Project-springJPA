@@ -84,4 +84,19 @@ public class UserService {
     public Optional<CmmnUser> findById(String userId) {
         return cmmnUserRepository.findById(userId);
     }
+
+    // 비밀번호 변경
+    public boolean changePassword(String userId, String newPassword) {
+        var userLoginOpt = cmmnUserLoginRepository.findById(userId);
+        if (userLoginOpt.isPresent()) {
+            var userLogin = userLoginOpt.get();
+            String encoded = passwordEncoder.encode(newPassword);
+            userLogin.setBeforeUserPassword(userLogin.getUserPassword());
+            userLogin.setUserPassword(encoded);
+            userLogin.setChgDt(java.time.LocalDate.now());
+            cmmnUserLoginRepository.save(userLogin);
+            return true;
+        }
+        return false;
+    }
 }

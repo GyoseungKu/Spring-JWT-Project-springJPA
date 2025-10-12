@@ -85,4 +85,16 @@ public class JoinService {
             return "fail";
         }
     }
+
+    // 이메일 변경
+    public String changeUserEmail(String userId, String oldEmail, String newEmail) {
+        CmmnUser user = cmmnUserRepository.findByUserId(userId);
+        if (user == null || !user.getUserEmail().equals(oldEmail)) {
+            return "fail";
+        }
+        user.setUserEmail(newEmail);
+        user.setChgDt(LocalDate.now().toString());
+        cmmnUserRepository.save(user);
+        return "success";
+    }
 }
