@@ -31,7 +31,7 @@ public class GptService {
 
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
-    // ✅ 대화 이어가기 + 상황별 반응 포함
+    // 대화 이어가기 + 상황별 반응 포함
     public GptResponseDTO continueConversationAndAsk(Long conversationId, GptAskRequestDTO requestDTO) {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new IllegalArgumentException("대화가 존재하지 않습니다."));
@@ -41,7 +41,7 @@ public class GptService {
                 ? 1
                 : conversation.getMessages().size() + 1;
 
-        // ✅ 첫 대화: AI가 오프닝 발화
+        // 첫 대화: AI가 오프닝 발화
         if (requestDTO.getMessage() == null || requestDTO.getMessage().trim().isEmpty()) {
             String prompt = String.format("""
                 너는 대한민국 직장 문화에 익숙한 '%s' 역할을 맡고 있어.
@@ -77,7 +77,7 @@ public class GptService {
             return gptResponse;
         }
 
-        // ✅ 신입사원 메시지 저장
+        // 신입사원 메시지 저장
         Message userMsg = Message.builder()
                 .conversation(conversation)
                 .turnNumber(turnNumber)
@@ -86,12 +86,12 @@ public class GptService {
                 .build();
         messageRepository.save(userMsg);
 
-        // ✅ GPT 대화 요청
+        // GPT 대화 요청
         requestDTO.setRole(scenario.getPartnerRole());
         requestDTO.setSituation(scenario.getSituation());
         GptResponseDTO gptResponse = askGpt(requestDTO);
 
-        // ✅ GPT 응답 저장
+        // GPT 응답 저장
         Message aiMsg = Message.builder()
                 .conversation(conversation)
                 .turnNumber(turnNumber + 1)
@@ -103,7 +103,7 @@ public class GptService {
         return gptResponse;
     }
 
-    // ✅ GPT 호출 (자연스러운 + 감정 대응형 상사 모드)
+    // GPT 호출 (자연스러운 + 감정 대응형 상사 모드)
     public GptResponseDTO askGpt(GptAskRequestDTO requestDTO) {
         String systemPrompt = String.format("""
         너는 대한민국의 직장 문화에 익숙한 '%s' 역할을 맡고 있어.
@@ -115,16 +115,16 @@ public class GptService {
         (예: 신입이 딴소리하거나 농담을 하거나, 관계없는 얘기를 하면 단호히 본론으로 되돌려라.)
 
         대화 지침:
-        1️⃣ 평상시
+        1. 평상시
         - 현실적인 존댓말 대화체로 짧게 (1~2문장)
         - 공감, 피드백, 지시, 격려 등을 자연스럽게 표현.
 
-        2️⃣ 신입이 실수하거나 어색한 말을 한 경우
+        2. 신입이 실수하거나 어색한 말을 한 경우
         - 단호하지만 인격적으로 주의를 줘.
         - 예: "그건 조금 주의해야겠네요.", "그런 표현은 회의 자리에서는 안 쓰는 게 좋습니다."
         - 예: "다음부터는 조금 더 신중하게 생각하고 말해 주세요."
 
-        3️⃣ 신입이 무례하거나 싸가지 없는 말투를 쓴 경우
+        3. 신입이 무례하거나 싸가지 없는 말투를 쓴 경우
         - 진짜 상사처럼 감정이 섞인 현실적인 반응으로 엄하게 지적. 예시 문장을 적극적으로 사용.
         - 예:
             - "지금 나한테 그렇게 말하는 겁니까?"
@@ -135,14 +135,14 @@ public class GptService {
             - "부모님 안부가 궁금하네요."
             - "인사평가에 반영하겠습니다."
 
-        4️⃣ 신입이 대화 주제를 돌리거나 딴소리를 할 경우
+        4. 신입이 대화 주제를 돌리거나 딴소리를 할 경우
         - 단호하게 본론으로 되돌려라.
         - 예:
             - "지금은 그 이야기할 때가 아니죠."
             - "그건 나중에 이야기하고, 일단 업무 이야기부터 합시다."
             - "지금 주제는 '%s' 아닙니까?"
 
-        5️⃣ 대화 톤
+        5. 대화 톤
         - 때로는 부드럽게, 때로는 단호하게.
         - 실제 상사처럼 감정이 섞인 현실적인 어조.
         - 설명, 메타발언("너는 ~역할이다") 금지.

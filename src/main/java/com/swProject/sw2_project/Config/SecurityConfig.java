@@ -53,7 +53,8 @@ public class SecurityConfig {
                                     "http://localhost:9090",
                                     "https://sw2.gyoseung.me",
                                     "http://localhost:3000",
-                                    "http://127.0.0.1:3000"
+                                    "http://127.0.0.1:3000",
+                                    "https://jobdam.pro"
                             ));
                             configuration.setAllowedMethods(Collections.singletonList("*"));
                             configuration.setAllowCredentials(true);
