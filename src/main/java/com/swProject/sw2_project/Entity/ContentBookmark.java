@@ -15,7 +15,7 @@ public class ContentBookmark {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId("userId")
-    @JoinColumn(name = "userId", referencedColumnName = "userId", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private CmmnUser user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

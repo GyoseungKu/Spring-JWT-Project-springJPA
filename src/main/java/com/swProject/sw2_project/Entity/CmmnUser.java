@@ -20,7 +20,7 @@ public class CmmnUser {
 
     @OneToOne
     @MapsId
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "user_id")
     private CmmnUserLogin cmmnUserLogin;
 
     @OneToOne
