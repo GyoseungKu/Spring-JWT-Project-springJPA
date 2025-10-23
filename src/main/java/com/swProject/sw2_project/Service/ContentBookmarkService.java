@@ -1,5 +1,6 @@
 package com.swProject.sw2_project.Service;
 
+import com.swProject.sw2_project.DTO.ContentSummaryDTO;
 import com.swProject.sw2_project.Entity.CmmnUser;
 import com.swProject.sw2_project.Entity.Content;
 import com.swProject.sw2_project.Entity.ContentBookmark;
@@ -32,17 +33,20 @@ public class ContentBookmarkService {
     @Transactional
     public void addBookmark(String userId, Long contentId) {
         ensureLoggedIn(userId);
+
         Content content = contentRepo.findById(contentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "content not found"));
 
-        if (bookmarkRepo.existsByIdUserIdAndIdContentId(userId, contentId)) return;
+        if (bookmarkRepo.existsByIdUserIdAndIdContentId(userId, contentId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "already bookmarked");
+        }
 
-        CmmnUser userRef = userRepo.findById(userId)
+        CmmnUser user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
 
         ContentBookmark cb = new ContentBookmark();
         cb.setId(new ContentBookmarkId(userId, contentId));
-        cb.setUser(userRef);
+        cb.setUser(user);
         cb.setContent(content);
         bookmarkRepo.save(cb);
     }
@@ -50,25 +54,37 @@ public class ContentBookmarkService {
     @Transactional
     public void removeBookmark(String userId, Long contentId) {
         ensureLoggedIn(userId);
+
+        if (!bookmarkRepo.existsByIdUserIdAndIdContentId(userId, contentId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "not bookmarked");
+        }
         bookmarkRepo.deleteByIdUserIdAndIdContentId(userId, contentId);
     }
 
     @Transactional(readOnly = true)
-    public List<com.swProject.sw2_project.DTO.ContentSummaryDTO> listMyBookmarks(String userId) {
+    public List<ContentSummaryDTO> listMyBookmarks(String userId) {
         ensureLoggedIn(userId);
         return bookmarkRepo.findAllWithContentByUserId(userId)
                 .stream()
-                .map(cb -> com.swProject.sw2_project.DTO.ContentSummaryDTO.from(cb.getContent()))
+                .map(cb -> ContentSummaryDTO.from(cb.getContent()))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public long countByContent(Long contentId) {
-        // 존재하지 않는 컨텐츠의 경우 404 응답
         if (!contentRepo.existsById(contentId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "content not found");
         }
         return bookmarkRepo.countByIdContentId(contentId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isBookmarked(String userId, Long contentId) {
+        ensureLoggedIn(userId);
+        if (!contentRepo.existsById(contentId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "content not found");
+        }
+        return bookmarkRepo.existsByIdUserIdAndIdContentId(userId, contentId);
     }
 
     private void ensureLoggedIn(String userId) {
